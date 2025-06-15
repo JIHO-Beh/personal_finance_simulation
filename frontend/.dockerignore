@@ -1,0 +1,5 @@
+node_modules/ # npm install로 컨테이너 내에서 설치하므로 필요 없음
+dist/         # 빌드 결과물 (개발 모드에서는 사용하지 않음)
+.env.local    # 로컬 환경 변수 (민감 정보 포함 가능)
+.idea/        # IDE 설정 파일
+.vscode/      # VS Code 설정 파일
