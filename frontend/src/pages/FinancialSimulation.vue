@@ -59,7 +59,7 @@ const simurationEvent = async () => {
       <v-col :cols="4">
         <v-text-field
           hide-details="auto"
-          label="税抜給料"
+          label="給料"
         ></v-text-field>
       </v-col>
     </v-row>
@@ -72,8 +72,10 @@ const simurationEvent = async () => {
       </template>
       <v-col cols="2" offset="2">
         <v-btn 
-          density="compact" 
+          variant="outlined"
+          size="large"
           icon="mdi-plus"
+          base-color="private"
           @click="addMonthlyFixedPayment"
         />
       </v-col>

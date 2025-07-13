@@ -3,10 +3,10 @@ version: '3.8' # Docker Compose 파일 형식 버전
 services:
   # 1. PostgreSQL 데이터베이스 서비스 정의
   db:
-    image: postgres:15-alpine # PostgreSQL 15 버전의 경량 이미지 사용
+    image: postgres:17-alpine # PostgreSQL 15 버전의 경량 이미지 사용
     environment:
       POSTGRES_DB: salarydb # 데이터베이스 이름 (필요시 변경)
-      POSTGRES_USER: user   # 데이터베이스 사용자 이름 (필요시 변경)
+      POSTGRES_USER: salary_user   # 데이터베이스 사용자 이름 (필요시 변경)
       POSTGRES_PASSWORD: P@ssWord!123
     ports:
       - "5432:5432" # 호스트(내 컴퓨터)의 5432 포트를 컨테이너의 5432 포트에 연결
@@ -27,7 +27,7 @@ services:
       # Spring Boot 애플리케이션이 PostgreSQL에 연결할 때 사용할 정보
       # 'db'는 docker-compose.yml에 정의된 데이터베이스 서비스의 이름입니다.
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/salarydb # 위 POSTGRES_DB와 동일하게 변경
-      SPRING_DATASOURCE_USERNAME: user # 위 POSTGRES_USER와 동일하게 변경
+      SPRING_DATASOURCE_USERNAME: salary_user # 위 POSTGRES_USER와 동일하게 변경
       SPRING_DATASOURCE_PASSWORD: P@ssWord!123 # TODO: 위 POSTGRES_PASSWORD와 동일하게 변경
       SPRING_PROFILES_ACTIVE: dev # Spring Boot의 'dev' 프로파일 활성화 (개발용)
     depends_on: # 'db' 서비스가 먼저 시작되어야 'backend'가 시작됩니다.

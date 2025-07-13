@@ -1,16 +1,6 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine # PostgreSQL 15 버전의 경량 이미지 사용
-    environment:
-      POSTGRES_DB: salarydb # 데이터베이스 이름 (필요시 변경)
-      POSTGRES_USER: user   # 데이터베이스 사용자 이름 (필요시 변경)
-      POSTGRES_PASSWORD: P@ssWord!123
-    ports:
-      - "5432:5432" # 호스트(내 컴퓨터)의 5432 포트를 컨테이너의 5432 포트에 연결
-    volumes:
-      - db_data:/var/lib/postgresql/data # 데이터 영속성을 위한 볼륨 마운트
   dev-app:
     build:
       context: .
