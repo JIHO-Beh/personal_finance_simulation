@@ -3,6 +3,7 @@ import PrimaryBtn from '../components/PrimaryBtn.vue';
 import SimulationCard from '../components/SimulationCard.vue';
 import { ref } from "vue";
 import axios from 'axios'
+import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 
 const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
 const FINANIAL_SIMULAT = "/api/v1/financial-simulat"
@@ -46,6 +47,8 @@ const simurationEvent = async () => {
         <v-text-field
           hide-details="auto"
           label="目標金額"
+          variant="underlined"
+          color="indigo"
         ></v-text-field>
       </v-col>
       <v-col>
@@ -60,7 +63,14 @@ const simurationEvent = async () => {
         <v-text-field
           hide-details="auto"
           label="給料"
+          variant="underlined"
+          color="indigo"
         ></v-text-field>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-divider class="border-opacity-100 my-5" color="indigo"></v-divider>
       </v-col>
     </v-row>
     <v-row>
@@ -71,12 +81,9 @@ const simurationEvent = async () => {
         />
       </template>
       <v-col cols="2" offset="2">
-        <v-btn 
-          variant="outlined"
-          size="large"
-          icon="mdi-plus"
-          base-color="private"
-          @click="addMonthlyFixedPayment"
+        <TooltipPlusIcon
+          tooltip-text="押下時、比較対象欄が追加される"
+          v-on:child-event="addMonthlyFixedPayment"
         />
       </v-col>
     </v-row>

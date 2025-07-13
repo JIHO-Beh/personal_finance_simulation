@@ -1,14 +1,17 @@
 <template>
   <v-app>
     <v-layout class="d-flex">
-      <v-app-bar title="HEADER"></v-app-bar>
+      <v-app-bar color="primary" title="HEADER"></v-app-bar>
 
-      <v-navigation-drawer>
+      <v-navigation-drawer color="secondary">
         <v-list>
           <v-list-item 
-          title="個人資産管理"
-          to="/financial-simulation"  
-          />
+            title=""
+            to="/financial-simulation"
+            color="white"
+          >
+            個人資産管理
+          </v-list-item>
         </v-list>
       </v-navigation-drawer>
 

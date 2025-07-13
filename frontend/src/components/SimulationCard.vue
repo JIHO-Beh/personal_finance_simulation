@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref , defineProps, defineEmits, type PropType } from 'vue';
 import type { MonthlyFixedPayment, SupportedCountries } from "../pages/FinancialSimulation.vue";
+import TooltipPlusIcon from './TooltipPlusIcon.vue';
 
 const props = defineProps({
   initialMonthlyFixedPayments: {
@@ -41,13 +42,26 @@ const updatePayment = () => {
 
 <template>
   <v-col cols="4">
-    <v-card>
+    <v-card
+      color="indigo"
+      variant="outlined"
+    >
+      <v-row class="ma-1">
+        <v-col>
+          <h2>比較対象</h2>
+        </v-col>
+      </v-row>
       <v-row class="ma-1">
         <v-col>
           <v-select
             label="国選択"
             :items="['韓国', '日本']"
           ></v-select>
+        </v-col>
+      </v-row>
+      <v-row class="ma-1">
+        <v-col>
+          月固定費設定
         </v-col>
       </v-row>
       <v-row
@@ -58,7 +72,7 @@ const updatePayment = () => {
         <v-col cols="6">
           <v-text-field
             hide-details="auto"
-            label="月固定支払名称"
+            label="項目名"
             v-model="payment.monthlyFixedPaymentName"
             @update:modelValue="updatePayment"
           ></v-text-field>
@@ -67,7 +81,7 @@ const updatePayment = () => {
           <v-text-field
             type="number"
             hide-details="auto"
-            label="月固定支払額"
+            label="金額"
             v-model.number="payment.monthlyFixedPaymentAmount" 
             @update:modelValue="updatePayment"
           ></v-text-field>
@@ -75,11 +89,10 @@ const updatePayment = () => {
       </v-row>
       <v-row class="ma-1">
         <v-col align="center">
-          <v-btn
-            density="compact"
-            icon="mdi-plus"
-            @click="addMonthlyFixedPayment"
-          ></v-btn>
+          <TooltipPlusIcon
+            tooltip-text="押下時、月固定費設定欄が追加される"
+            v-on:child-event="addMonthlyFixedPayment"
+          />
         </v-col>
       </v-row>
     </v-card>

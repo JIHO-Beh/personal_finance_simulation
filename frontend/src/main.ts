@@ -3,11 +3,11 @@ import App from './App.vue'
 import router from './router'; // ルーターインスタンスインポート
 
 // Vuetify
-import 'vuetify/styles/main.css' // Vuetify 基本ス
-import '@mdi/font/css/materialdesignicons.css'; // Material Design Icons CSS インポートタイルシート
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components'; // すべての Vuetify コンポネント
 import * as directives from 'vuetify/directives';
+import 'vuetify/styles/main.css';
+import '@mdi/font/css/materialdesignicons.css';
 
 const vuetify = createVuetify({
   components,
@@ -21,8 +21,8 @@ const vuetify = createVuetify({
       customTheme: {
         dark: false,
         colors: {
-          primary: '#23428E',
-          secondary: '#66BB6A',
+          primary: '#5E35B1',
+          secondary: '#B39DDB',
           error: '#B00020',
           info: '#2196F3',
           success: '#4CAF50',

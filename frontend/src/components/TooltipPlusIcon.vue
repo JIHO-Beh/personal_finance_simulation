@@ -2,7 +2,7 @@
 import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
-  btnText: {
+  tooltipText: {
     type: String,
     required: true,
   },
@@ -15,12 +15,15 @@ const emitEvent = () => {
 </script>
 
 <template>
-  <v-btn
-    class="ma-3"
-    variant="elevated"
-    color="primary"
-    @click="emitEvent"
-  >
-    {{props.btnText}}
-  </v-btn>
+  <v-tooltip :text="props.tooltipText" location="top">
+    <template v-slot:activator="{ props }">
+      <v-icon
+        v-bind="props"
+        size="x-large"
+        icon="mdi-plus-circle"
+        color="indigo"
+        @click="emitEvent"
+      />
+    </template>
+  </v-tooltip>
 </template>
