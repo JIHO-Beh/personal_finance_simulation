@@ -1,10 +1,10 @@
-package com.pfs.project.backend;
+package com.psc.personal_salary_calculator;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendApplicationTests {
+class PersonalSalaryCalculatorApplicationTests {
 
 	@Test
 	void contextLoads() {

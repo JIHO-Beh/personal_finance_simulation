@@ -1,6 +1,0 @@
-build/     # 빌드 결과물 (컨테이너 내에서 다시 빌드하므로 필요 없음)
-.gradle/   # Gradle 관련 캐시/설정 (컨테이너 내에서 다시 다운로드)
-.idea/     # IntelliJ IDEA 설정 파일
-*.iml      # IntelliJ IDEA 모듈 파일
-*.ipr
-*.iws
