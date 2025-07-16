@@ -3,7 +3,7 @@ version: '3.8' # Docker Compose 파일 형식 버전
 services:
   # 1. PostgreSQL 데이터베이스 서비스 정의
   db:
-    image: postgres:17-alpine # PostgreSQL 15 버전의 경량 이미지 사용
+    image: postgres:17-alpine # PostgreSQL 17.5 버전의 경량 이미지 사용
     environment:
       POSTGRES_DB: salarydb # 데이터베이스 이름 (필요시 변경)
       POSTGRES_USER: salary_user   # 데이터베이스 사용자 이름 (필요시 변경)
@@ -12,6 +12,7 @@ services:
       - "5432:5432" # 호스트(내 컴퓨터)의 5432 포트를 컨테이너의 5432 포트에 연결
     volumes:
       - db_data:/var/lib/postgresql/data # 데이터 영속성을 위한 볼륨 마운트
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network # 모든 서비스가 통신할 수 있는 가상 네트워크
     restart: always # 컨테이너가 종료되면 항상 자동으로 다시 시작
@@ -34,7 +35,7 @@ services:
       - db
     volumes:
       - ./backend:/app # 호스트의 'backend/' 폴더 내용을 컨테이너의 '/app'에 연결 (코드 변경 시 즉시 반영)
-      - ~/.m2:/root/.m2 # (선택 사항) Maven/Gradle 캐시 공유로 빌드 속도 향상
+      - ~/.gradle/caches:/root/.gradle/caches # Gradle 캐시 공유로 빌드 속도 향상
     networks:
       - app-network
     restart: on-failure # 컨테이너 실패 시 자동으로 다시 시작
