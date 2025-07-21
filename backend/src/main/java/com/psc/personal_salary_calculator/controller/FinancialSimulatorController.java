@@ -13,6 +13,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+// 이 컨트롤러의 모든 엔드포인트에 대해 CORS 허용
+@CrossOrigin(origins = "http://localhost:3000") // <-- 이 부분을 추가합니다.
 public class FinancialSimulatorController {
 
     private final SimulationService simulationService;
