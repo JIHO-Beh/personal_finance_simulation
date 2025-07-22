@@ -2,6 +2,7 @@ package com.psc.personal_salary_calculator.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.psc.personal_salary_calculator.dto.FinancialSimulationRequest;
+import com.psc.personal_salary_calculator.dto.ScenarioRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,63 +23,98 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc // MockMvc(가짜 HTTP 요청 객체)를 자동으로 설정하고 주입
 class FinancialSimulatorControllerTest {
 
-    @Autowired // 스프링 컨테이너가 관리하는 Bean을 주입
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper; // Java 객체를 JSON 문자열로 변환하기 위해 사용
+    private ObjectMapper objectMapper;
 
+    // [기존 테스트 수정] 여러 시나리오 요청 테스트
     @Test
-    @DisplayName("정상적인 요청 시 200 OK 상태와 계산 결과를 반환한다")
-    void simulate_Success_WhenRequestIsValid() throws Exception {
-        // given (준비)
+    @DisplayName("여러 시나리오를 포함한 정상적인 요청 시 200 OK와 결과 배열을 반환한다")
+    void simulate_Success_ForMultipleScenarios() throws Exception {
+        // given
+        ScenarioRequest usScenario = new ScenarioRequest("US", List.of(new BigDecimal("1500")));
+        ScenarioRequest krScenario = new ScenarioRequest("KR", List.of(new BigDecimal("1200")));
         FinancialSimulationRequest request = new FinancialSimulationRequest(
-                "KR",
-                new BigDecimal("3333333"),
-                "KRW",
-                new BigDecimal("1000000"),
-                new BigDecimal("20000000")
+                new BigDecimal("5000"),
+                new BigDecimal("60000"),
+                null, null,
+                List.of(usScenario, krScenario)
         );
         String requestJson = objectMapper.writeValueAsString(request);
 
-        // when (실행)
+        // when
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/financial-simulate")
+                post("/api/v1/financial-simulation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson)
         );
 
-        // then (검증)
+        // then
         resultActions
-                .andExpect(status().isOk()) // HTTP 상태가 200 OK 인지 확인
-                .andExpect(jsonPath("$.afterTaxSalary").value(2943333)) // JSON 응답의 afterTaxSalary 필드 값 확인
-                .andExpect(jsonPath("$.monthsToGoal").value(11)); // JSON 응답의 monthsToGoal 필드 값 확인
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray()) // 응답이 배열인지 확인
+                .andExpect(jsonPath("$.length()").value(2)) // 배열의 크기가 2인지 확인
+                .andExpect(jsonPath("$[0].countryCode").value("US"))
+                .andExpect(jsonPath("$[1].countryCode").value("KR"));
     }
 
+    // [신규 테스트] 기본값(한국) 계산 테스트
+    @Test
+    @DisplayName("시나리오와 국가코드 없이 요청 시 한국 기준으로 기본 계산 후 200 OK를 반환한다")
+    void simulate_Success_ForDefaultKoreaCase() throws Exception {
+        // given
+        FinancialSimulationRequest request = new FinancialSimulationRequest(
+                new BigDecimal("4000000"),
+                null,
+                null, // 국가 코드 없음
+                List.of(new BigDecimal("1000000")),
+                null  // 시나리오 없음
+        );
+        String requestJson = objectMapper.writeValueAsString(request);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                post("/api/v1/financial-simulation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson)
+        );
+
+        // then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].countryCode").value("KR"))
+                .andExpect(jsonPath("$[0].monthsToGoal").value(19));
+    }
+
+    // [기존 테스트 수정] 유효성 검증 실패 테스트
     @Test
     @DisplayName("월급에 음수를 입력하는 등 유효하지 않은 요청 시 400 Bad Request를 반환한다")
     void simulate_FailsWithBadRequest_WhenSalaryIsNegative() throws Exception {
-        // given (준비)
+        // given
         FinancialSimulationRequest request = new FinancialSimulationRequest(
-                "KR",
                 new BigDecimal("-100"), // 유효하지 않은 값
-                "KRW",
-                new BigDecimal("1000000"),
+                null,
+                "KR",
+                List.of(new BigDecimal("1000000")),
                 null
         );
         String requestJson = objectMapper.writeValueAsString(request);
 
-        // when (실행)
+        // when
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/financial-simulate")
+                post("/api/v1/financial-simulation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson)
         );
 
-        // then (검증)
+        // then
         resultActions
-                .andExpect(status().isBadRequest()) // HTTP 상태가 400 Bad Request 인지 확인
-                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED")) // 우리가 정의한 에러 코드 확인
-                .andExpect(jsonPath("$.message").value("월급은 양수여야 합니다.")); // DTO에 설정한 에러 메시지 확인
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.message").value("월급은 양수여야 합니다."));
     }
 }
