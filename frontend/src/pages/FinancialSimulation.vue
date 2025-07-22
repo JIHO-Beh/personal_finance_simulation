@@ -5,8 +5,8 @@ import { ref } from "vue";
 import axios from 'axios'
 import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 
-const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
-const FINANIAL_SIMULAT = "/api/v1/financial-simulat"
+const SUPPORTED_COUNTRIES = "http://localhost:8083/api/v1/supported-countries"
+const FINANIAL_SIMULAT = "http://localhost:8083/api/v1/supported-countries"
 
 export interface MonthlyFixedPayment {
   monthlyFixedPaymentName: string;
@@ -20,10 +20,10 @@ export interface SupportedCountries {
 interface CardFormat {
   monthlyFixedPayment: MonthlyFixedPayment[]
 }
-
+const supportedCountries = ref()
 const init = async () => {
-  await axios.get(SUPPORTED_COUNTRIES).then(data => {
-    console.log(data)
+  supportedCountries.value = await axios.get(SUPPORTED_COUNTRIES).then(data => {
+    return data.data
   })
 }
 init()
@@ -32,6 +32,7 @@ const cardValues = ref<CardFormat[]>([])
 
 const addMonthlyFixedPayment = () => {
   cardValues.value.push({monthlyFixedPayment: []});
+  
 }
 const simurationEvent = async () => {
   await axios.get(FINANIAL_SIMULAT).then(data => {
@@ -76,7 +77,8 @@ const simurationEvent = async () => {
     <v-row>
       <template v-for="(cardData, index) in cardValues" :key="index">
         <SimulationCard
-          :card-data="cardData"
+          :initial-monthly-fixed-payments="cardData.monthlyFixedPayment"
+          :supported-countries="supportedCountries"
           class="mb-4"
         />
       </template>

@@ -15,6 +15,9 @@ const props = defineProps({
     default: () => []
   }
 });
+const selectedCountry = ref<SupportedCountries>();
+const currency = ref<string>()
+
 const monthlyFixedPayments = ref<MonthlyFixedPayment[]>([
   ...props.initialMonthlyFixedPayments, 
 ]);
@@ -37,6 +40,12 @@ const addMonthlyFixedPayment = () => {
 const updatePayment = () => {
   emit('update:monthlyFixedPayments', monthlyFixedPayments.value);
 };
+const handleSelectionChange = (newValue: SupportedCountries) => {
+  console.log('選択された値が変更されました (update:modelValue):', newValue);
+  currency.value = newValue.currency
+  // 여기에 값이 변경되었을 때 실행할 로직을 추가합니다.
+  // 예: 다른 데이터 업데이트, API 호출 등
+};
 
 </script>
 
@@ -54,8 +63,12 @@ const updatePayment = () => {
       <v-row class="ma-1">
         <v-col>
           <v-select
+            v-model="selectedCountry"
             label="国選択"
-            :items="['韓国', '日本']"
+            :items="supportedCountries"
+            item-title="countryName"
+            :return-object="true"  
+            @update:modelValue="handleSelectionChange"
           ></v-select>
         </v-col>
       </v-row>
@@ -81,7 +94,7 @@ const updatePayment = () => {
           <v-text-field
             type="number"
             hide-details="auto"
-            label="金額"
+            :label="`金額${currency ? currency : ''}`"
             v-model.number="payment.monthlyFixedPaymentAmount" 
             @update:modelValue="updatePayment"
           ></v-text-field>
