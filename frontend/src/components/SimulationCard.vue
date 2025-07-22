@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref , defineProps, defineEmits, type PropType } from 'vue';
-import type { MonthlyFixedPayment, SupportedCountries } from "../pages/FinancialSimulation.vue";
+import type { CardFormat, SupportedCountries } from "../pages/FinancialSimulation.vue";
 import TooltipPlusIcon from './TooltipPlusIcon.vue';
 
 const props = defineProps({
-  initialMonthlyFixedPayments: {
-    type: Array as PropType<MonthlyFixedPayment[]>,
+  cardInformation: {
+    type: Object as PropType<CardFormat>,
     required: true,
-    default: () => []
   },
   supportedCountries: {
     type: Array as PropType<SupportedCountries[]>,
@@ -18,33 +17,31 @@ const props = defineProps({
 const selectedCountry = ref<SupportedCountries>();
 const currency = ref<string>()
 
-const monthlyFixedPayments = ref<MonthlyFixedPayment[]>([
-  ...props.initialMonthlyFixedPayments, 
-]);
+const cardInformation = ref<CardFormat>(
+  props.cardInformation, 
+);
 const supportedCountries = ref<SupportedCountries[]>([
   ...props.supportedCountries, 
 ]);
 console.log(supportedCountries)
-const emit = defineEmits(['update:monthlyFixedPayments']);
+const emit = defineEmits(['update:cardInformation']);
 
 const addMonthlyFixedPayment = () => {
-  monthlyFixedPayments.value.push({
+  cardInformation.value.monthlyFixedPayment.push({
     monthlyFixedPaymentName: '',
     monthlyFixedPaymentAmount: 0,
   });
   // 부모 컴포넌트에 변경된 배열을 emit할 수도 있습니다.
-  emit('update:monthlyFixedPayments', monthlyFixedPayments.value);
+  emit('update:cardInformation', cardInformation.value);
 };
 
 // 각 입력 필드에서 값이 변경될 때 호출될 함수 (선택 사항: emit을 통해 부모에게 알림)
 const updatePayment = () => {
-  emit('update:monthlyFixedPayments', monthlyFixedPayments.value);
+  emit('update:cardInformation', cardInformation.value);
 };
 const handleSelectionChange = (newValue: SupportedCountries) => {
-  console.log('選択された値が変更されました (update:modelValue):', newValue);
   currency.value = newValue.currency
-  // 여기에 값이 변경되었을 때 실행할 로직을 추가합니다.
-  // 예: 다른 데이터 업데이트, API 호출 등
+  props.cardInformation.coutryCode = newValue.countryCode
 };
 
 </script>
@@ -78,7 +75,7 @@ const handleSelectionChange = (newValue: SupportedCountries) => {
         </v-col>
       </v-row>
       <v-row
-        v-for="(payment, index) in monthlyFixedPayments"
+        v-for="(payment, index) in cardInformation.monthlyFixedPayment"
         :key="index"
         class="ma-1"
       >
