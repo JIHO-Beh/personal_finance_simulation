@@ -5,8 +5,8 @@ import { ref } from "vue";
 import axios from 'axios'
 import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 
-const SUPPORTED_COUNTRIES = "http://localhost:8083/api/v1/supported-countries"
-const FINANIAL_SIMULAT = "http://localhost:8083/api/v1/financial-simulation"
+const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
+const FINANIAL_SIMULAT = "/api/v1/financial-simulation"
 
 export interface MonthlyFixedPayment {
   monthlyFixedPaymentName: string;
@@ -22,8 +22,8 @@ export interface CardFormat {
   monthlyFixedPayment: MonthlyFixedPayment[]
 }
 const supportedCountries = ref()
-const goalAmount = ref()
-const salary = ref()
+const goalAmount = ref<number>()
+const salary = ref<number>()
 const init = async () => {
   supportedCountries.value = await axios.get(SUPPORTED_COUNTRIES).then(data => {
     return data.data
@@ -91,6 +91,7 @@ const simurationEvent = async () => {
           label="目標金額"
           variant="underlined"
           color="indigo"
+          type="number"
         ></v-text-field>
       </v-col>
       <v-col>
@@ -108,6 +109,7 @@ const simurationEvent = async () => {
           label="給料"
           variant="underlined"
           color="indigo"
+          type="number"
         ></v-text-field>
       </v-col>
     </v-row>
