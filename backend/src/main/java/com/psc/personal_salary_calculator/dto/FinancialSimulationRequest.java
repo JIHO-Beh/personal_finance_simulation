@@ -13,8 +13,5 @@ public record FinancialSimulationRequest(
 
         BigDecimal goalAmount,
 
-        String countryCode,
-        List<BigDecimal> fixedExpense,
-
         List<@Valid ScenarioRequest> scenarios
 ) {}

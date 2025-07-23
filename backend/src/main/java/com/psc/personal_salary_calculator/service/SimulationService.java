@@ -44,15 +44,9 @@ public class SimulationService {
                     .map(scenario -> processScenario(request.salary(), request.goalAmount(), scenario))
                     .collect(Collectors.toList());
         } else {
-            // 시나리오가 없는 경우: 최상위 필드를 사용해 단일 계산
-            // countryCode가 없거나 비어있으면 'KR'을 기본값으로 사용
-            String countryCode = (request.countryCode() == null || request.countryCode().isBlank())
-                    ? "KR"
-                    : request.countryCode();
-
-            // 최상위 필드를 이용해 임시 ScenarioRequest 객체를 만들어 계산 메소드 재사용
-            ScenarioRequest singleScenario = new ScenarioRequest(countryCode, request.fixedExpense());
-            ScenarioResult result = processScenario(request.salary(), request.goalAmount(), singleScenario);
+            // 시나리오가 없는 경우: '한국', '고정 지출 0'을 기본값으로 단일 계산
+            ScenarioRequest defaultScenario = new ScenarioRequest("KR", Collections.emptyList());
+            ScenarioResult result = processScenario(request.salary(), request.goalAmount(), defaultScenario);
 
             // 단일 결과를 리스트에 담아 반환
             return Collections.singletonList(result);

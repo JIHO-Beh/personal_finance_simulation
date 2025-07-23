@@ -19,6 +19,7 @@ services:
   # 2. PostgreSQL 데이터베이스 서비스 정의
   db:
     image: postgres:17-alpine # PostgreSQL 17.5 버전의 경량 이미지 사용
+    container_name: psc_db
     environment:
       POSTGRES_DB: salarydb # 데이터베이스 이름 (필요시 변경)
       POSTGRES_USER: salary_user   # 데이터베이스 사용자 이름 (필요시 변경)
@@ -39,6 +40,7 @@ services:
       dockerfile: Dockerfile # 사용할 Dockerfile의 이름
     #ports: # NGINX에의해 외부와 직접 통신하지 않으므로 포트 설정 제거
     #  - "8083:8080" # 호스트의 8083 포트를 컨테이너의 8080 포트에 연결 (백엔드 앱 포트)
+    container_name: psc_backend
     environment:
       # Spring Boot 애플리케이션이 PostgreSQL에 연결할 때 사용할 정보
       # 'db'는 docker-compose.yml에 정의된 데이터베이스 서비스의 이름입니다.
@@ -62,13 +64,14 @@ services:
       dockerfile: Dockerfile # 사용할 Dockerfile의 이름
     #ports: # NGINX에의해 외부와 직접 통신하지 않으므로 포트 설정 제거
     #  - "8082:3000" # 호스트의 8082 포트를 컨테이너의 3000 포트에 연결 (프론트엔드 앱 포트)
+    container_name: psc_frontend
     volumes:
       - ./frontend:/app # 호스트의 'frontend/' 폴더 내용을 컨테이너의 '/app'에 연결
       - /app/node_modules # (중요) node_modules는 컨테이너 내부에 유지 (호스트와 독립적으로)
-    environment:
+    # environment: # NGINX에의해 설정 제거
       # Vue 애플리케이션에서 백엔드 API를 호출할 때 사용할 기본 URL
       # 'backend'는 docker-compose.yml에 정의된 백엔드 서비스의 이름입니다.
-      VUE_APP_API_BASE_URL: http://backend:8080
+      # VUE_APP_API_BASE_URL: http://backend:8080 # NGINX에의해 설정 제거
     depends_on: # 'backend' 서비스가 먼저 시작되어야 'frontend'가 시작됩니다.
       - backend
     networks:
