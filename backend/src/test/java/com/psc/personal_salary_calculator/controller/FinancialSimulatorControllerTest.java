@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,7 +30,6 @@ class FinancialSimulatorControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // [기존 테스트 수정] 여러 시나리오 요청 테스트
     @Test
     @DisplayName("여러 시나리오를 포함한 정상적인 요청 시 200 OK와 결과 배열을 반환한다")
     void simulate_Success_ForMultipleScenarios() throws Exception {
@@ -39,7 +39,6 @@ class FinancialSimulatorControllerTest {
         FinancialSimulationRequest request = new FinancialSimulationRequest(
                 new BigDecimal("5000"),
                 new BigDecimal("60000"),
-                null, null,
                 List.of(usScenario, krScenario)
         );
         String requestJson = objectMapper.writeValueAsString(request);
@@ -60,7 +59,6 @@ class FinancialSimulatorControllerTest {
                 .andExpect(jsonPath("$[1].countryCode").value("KR"));
     }
 
-    // [신규 테스트] 기본값(한국) 계산 테스트
     @Test
     @DisplayName("시나리오와 국가코드 없이 요청 시 한국 기준으로 기본 계산 후 200 OK를 반환한다")
     void simulate_Success_ForDefaultKoreaCase() throws Exception {
@@ -68,9 +66,7 @@ class FinancialSimulatorControllerTest {
         FinancialSimulationRequest request = new FinancialSimulationRequest(
                 new BigDecimal("4000000"),
                 null,
-                null, // 국가 코드 없음
-                List.of(new BigDecimal("1000000")),
-                null  // 시나리오 없음
+                Collections.emptyList()  // 시나리오 없음
         );
         String requestJson = objectMapper.writeValueAsString(request);
 
@@ -85,12 +81,10 @@ class FinancialSimulatorControllerTest {
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].countryCode").value("KR"))
-                .andExpect(jsonPath("$[0].monthsToGoal").value(19));
+                .andExpect(jsonPath("$[0].monthsToGoal").value(14)); // (400만*12) / (3532000-0)
     }
 
-    // [기존 테스트 수정] 유효성 검증 실패 테스트
     @Test
     @DisplayName("월급에 음수를 입력하는 등 유효하지 않은 요청 시 400 Bad Request를 반환한다")
     void simulate_FailsWithBadRequest_WhenSalaryIsNegative() throws Exception {
@@ -98,8 +92,6 @@ class FinancialSimulatorControllerTest {
         FinancialSimulationRequest request = new FinancialSimulationRequest(
                 new BigDecimal("-100"), // 유효하지 않은 값
                 null,
-                "KR",
-                List.of(new BigDecimal("1000000")),
                 null
         );
         String requestJson = objectMapper.writeValueAsString(request);

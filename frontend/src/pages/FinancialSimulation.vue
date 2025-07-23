@@ -6,7 +6,7 @@ import axios from 'axios'
 import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 
 const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
-const FINANIAL_SIMULAT = "/api/v1/financial-simulation"
+const FINANCIAL_SIMULATION = "/api/v1/financial-simulation"
 
 export interface MonthlyFixedPayment {
   monthlyFixedPaymentName: string;
@@ -18,7 +18,7 @@ export interface SupportedCountries {
   countryName: string;
 }
 export interface CardFormat {
-  coutryCode: string;
+  countryCode: string;
   monthlyFixedPayment: MonthlyFixedPayment[]
 }
 const supportedCountries = ref()
@@ -35,28 +35,28 @@ const cardValues = ref<CardFormat[]>([])
 
 const addMonthlyFixedPayment = () => {
   cardValues.value.push({
-    coutryCode: '',
+    countryCode: '',
     monthlyFixedPayment: []
   });
   
 }
 const simurationEvent = async () => {
-  // await axios.get(FINANIAL_SIMULAT).then(data => {
+  // await axios.get(FINANCIAL_SIMULATION).then(data => {
   //   console.log(data)
   // })
   const postData = {
     goalAmount: goalAmount.value,
     salary: salary.value,
-    countryCodeCards: cardValues.value.map((item: CardFormat) => {
+    scenarios: cardValues.value.map((item: CardFormat) => {
       return {
-        countryCode: item.coutryCode,
+        countryCode: item.countryCode,
         fixedExpense: item.monthlyFixedPayment.map((monthlyFixedPayment: MonthlyFixedPayment) => {
           return monthlyFixedPayment.monthlyFixedPaymentAmount
         })
       }
     })
   }
-  await axios.post(FINANIAL_SIMULAT, postData).then(response => {
+  await axios.post(FINANCIAL_SIMULATION, postData).then(response => {
     // 요청이 성공했을 때 실행될 코드
     console.log('POST リクエストが成功しました！');
     console.log('レスポンスデータ:', response.data); // 서버로부터 받은 응답 데이터
