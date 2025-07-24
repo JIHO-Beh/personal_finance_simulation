@@ -41,7 +41,7 @@ const updatePayment = () => {
 };
 const handleSelectionChange = (newValue: SupportedCountries) => {
   currency.value = newValue.currency
-  props.cardInformation.coutryCode = newValue.countryCode
+  props.cardInformation.countryCode = newValue.countryCode
 };
 
 </script>
