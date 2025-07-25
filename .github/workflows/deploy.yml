@@ -21,7 +21,7 @@ jobs:
         # 테스트용 DB 컨테이너의 환경 변수 설정
         env:
           POSTGRES_DB: salarydb_test # 테스트용 DB 이름
-          POSTGRES_USER: user
+          POSTGRES_USER: salary_user
           POSTGRES_PASSWORD: P@ssWord!123
         # 포트 설정 (테스트 환경의 localhost:5432로 연결)
         ports:
@@ -32,7 +32,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          
+
     # 작업의 단계(Step)들
     steps:
       # - Step 1: GitHub 저장소의 코드를 가상 컴퓨터로 내려받기
