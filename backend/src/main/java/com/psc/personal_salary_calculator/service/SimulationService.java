@@ -32,7 +32,7 @@ public class SimulationService {
                 .collect(Collectors.toList());
     }
 
-    //계산 로직 시작
+    //계산 로직 시작!!!!!!!!!!!!!!!
     @Transactional(readOnly = true)
     public List<ScenarioResult> calculate(FinancialSimulationRequest request) {
         // 'scenarios' 필드가 있는지 확인
