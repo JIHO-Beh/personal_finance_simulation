@@ -13,6 +13,26 @@ jobs:
     # 이 작업은 GitHub이 제공하는 가상 컴퓨터(ubuntu 최신 버전)에서 실행
     runs-on: ubuntu-latest
     
+    services:
+      # 'postgres'라는 이름의 서비스를 정의
+      postgres:
+        # DB 컨테이너가 사용할 이미지
+        image: postgres:17-alpine
+        # 테스트용 DB 컨테이너의 환경 변수 설정
+        env:
+          POSTGRES_DB: salarydb_test # 테스트용 DB 이름
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: P@ssWord!123
+        # 포트 설정 (테스트 환경의 localhost:5432로 연결)
+        ports:
+          - 5432:5432
+        # DB가 완전히 준비될 때까지 기다리는 옵션 (중요)
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
     # 작업의 단계(Step)들
     steps:
       # - Step 1: GitHub 저장소의 코드를 가상 컴퓨터로 내려받기
