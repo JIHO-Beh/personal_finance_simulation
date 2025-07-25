@@ -68,6 +68,9 @@ jobs:
       - name: Checkout latest code
         uses: actions/checkout@v4
 
+      - name: Build Backend Application
+        run: cd backend && ./gradlew build
+
       # - Step 2: Docker Compose로 배포 실행
       - name: Deploy with Docker Compose
         run: docker-compose up -d --build
