@@ -2,6 +2,7 @@
 import { ref , defineProps, defineEmits, type PropType } from 'vue';
 import type { CardFormat, SupportedCountries, MonthlyFixedPayment } from "../pages/FinancialSimulation.vue";
 import TooltipPlusIcon from './TooltipPlusIcon.vue';
+import { useField } from 'vee-validate';
 
 const props = defineProps({
   cardInformation: {
@@ -23,6 +24,7 @@ const props = defineProps({
     required: true,
   }
 });
+const { value: countryCodeValue, errorMessage: countryCodeError } = useField<string>(`cardValues[${props.cardIndex}].countryCode`);
 const currency = ref<string>()
 const cardInformation = ref<CardFormat>(
   props.cardInformation,
@@ -74,12 +76,12 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
       <v-row class="ma-1">
         <v-col>
           <v-select
-            v-model="props.cardInformation.countryCode"
+            v-model="countryCodeValue"
             :items="props.supportedCountries"
             :return-object="true"  
             label="国選択"
             item-title="countryName"
-            :error-messages="getFieldError('countryCode')"
+            :error-messages="countryCodeError"
             @update:modelValue="handleSelectionChange"
           ></v-select>
         </v-col>
@@ -127,6 +129,7 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
           ></v-text-field>
         </v-col>
       </v-row>
+      {{ formErrors }}
       <v-row class="ma-1">
         <v-col align="center">
           <TooltipPlusIcon

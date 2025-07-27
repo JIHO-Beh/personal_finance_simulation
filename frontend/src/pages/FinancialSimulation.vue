@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import PrimaryBtn from '../components/PrimaryBtn.vue';
 import SimulationCard from '../components/SimulationCard.vue';
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import axios from 'axios'
 import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 import Table from '../components/Table.vue';
 import { useField, useForm } from 'vee-validate';
-import * as yup from 'yup';
+import yup from '../../yup.locale';
 
 const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
 const FINANCIAL_SIMULATION = "/api/v1/financial-simulation"
@@ -59,7 +59,7 @@ const cardFormatSchema = yup.object({
   });
 
 const validationSchema = yup.object({
-  goalAmount: yup.number().min(0).required(),
+  goalAmount: yup.number().min(0).required("目標金額を入力してください"),
   salary: yup
     .number()
     .min(0)
