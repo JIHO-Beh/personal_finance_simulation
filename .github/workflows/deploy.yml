@@ -80,4 +80,6 @@ jobs:
 
       # - Step 2: Docker Compose로 배포 실행
       - name: Deploy with Docker Compose
-        run: docker-compose up -d --build
+        run: |
+          docker-compose pull
+          docker-compose up -d
