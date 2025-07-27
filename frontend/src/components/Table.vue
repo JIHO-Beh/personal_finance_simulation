@@ -52,16 +52,13 @@ watch(props.simulationResults, () => {
         <td>{{ props.supportedCountries.find((country: SupportedCountries)=> {
           return simulationResult.countryCode === country.countryCode
         })?.countryName }}</td>
-        <div
-          v-if="simulationResult.monthsToGoal === -1"
-        >
-          赤字のために積立金額がありません。
-        </div>
           <td 
-            v-else
             v-for="(item, index) in headers"
             :key="index">
-            {{ (simulationResult.netMonthlySaving * (index + 1)).toFixed(2) }}
+            {{ 
+              simulationResult.monthsToGoal !== -1 ?
+              (simulationResult.netMonthlySaving * (index + 1)).toFixed(2) :
+              index === 0 ? "積立金額なし": "" }}
           </td>
       </tr>
     </tbody>
