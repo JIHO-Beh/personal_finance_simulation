@@ -1,85 +1,93 @@
-# 워크플로우의 이름 (GitHub Actions 탭에 표시됨)
+# 워크플로우의 이름
 name: CI/CD to On-premise Server
 
-# 언제 이 워크플로우를 실행할지 정의하는 '트리거(Trigger)'
+# main 브랜치에 push 할 때 실행
 on:
   push:
-    branches: [ main  ] # 'develop' 브랜치에 코드가 push 될 때마다 실행
+    branches: [ main ]
 
-# 실행할 작업(Job)들의 목록
 jobs:
-  # 1. 'test'라는 이름의 첫 번째 작업 (CI: 지속적 통합)
+  # 1. 테스트(CI) 작업
   test:
-    # 이 작업은 GitHub이 제공하는 가상 컴퓨터(ubuntu 최신 버전)에서 실행
     runs-on: ubuntu-latest
-    
     services:
-      # 'postgres'라는 이름의 서비스를 정의
       postgres:
-        # DB 컨테이너가 사용할 이미지
         image: postgres:17-alpine
-        # 테스트용 DB 컨테이너의 환경 변수 설정
         env:
-          POSTGRES_DB: salarydb_test # 테스트용 DB 이름
+          POSTGRES_DB: salarydb_test
           POSTGRES_USER: salary_user
           POSTGRES_PASSWORD: P@ssWord!123
-        # 포트 설정 (테스트 환경의 localhost:5432로 연결)
         ports:
           - 5432:5432
-        # DB가 완전히 준비될 때까지 기다리는 옵션 (중요)
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-    # 작업의 단계(Step)들
     steps:
-      # - Step 1: GitHub 저장소의 코드를 가상 컴퓨터로 내려받기
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      # - Step 2: Java 17 설치하기
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
-      # - Step 3: gradlew 파일에 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x backend/gradlew
-        
-      # - Step 4: 백엔드 테스트 실행
       - name: Run Backend Tests with Gradle
         run: cd backend && ./gradlew test
 
-  # 2. 'deploy'라는 이름의 두 번째 작업 (CD: 지속적 배포)
-  deploy:
-    # 'test' 작업이 성공적으로 끝나야만 이 작업을 시작하도록 설정 (매우 중요!)
-    needs: test
-    
-    # 이 작업은 우리가 서버 노트북에 설치한 '비서(runner)'에서 실행
-    runs-on: self-hosted
-    
-    # 작업의 단계(Step)들
+  # 2. 이미지 빌드 및 푸시(CI) 작업 (새로 추가/수정)
+  build_and_push:
+    needs: test # 'test' 작업이 성공해야만 실행
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # GHCR에 이미지를 업로드할 수 있는 권한 부여
     steps:
-      # - Step 1: GitHub 저장소의 코드를 서버 노트북으로 내려받기
-      - name: Checkout latest code
+      - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Log in to GHCR
+
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Backend Application
-        run: cd backend; ./gradlew build -x test
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ghcr.io/jiho-beh/personal_finance_simulation/backend:latest
 
-      # - Step 2: Docker Compose로 배포 실행
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ghcr.io/jiho-beh/personal_finance_simulation/frontend:latest
+
+  # 3. 배포(CD) 작업 (수정)
+  deploy:
+    needs: build_and_push # 'build_and_push' 작업이 성공해야만 실행
+    runs-on: self-hosted
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Deploy with Docker Compose
+        # 더 이상 빌드하지 않고, 이미지를 pull 받아서 실행만 합니다.
         run: |
           docker-compose pull
           docker-compose up -d
