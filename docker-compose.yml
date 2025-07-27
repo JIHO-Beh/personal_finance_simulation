@@ -35,11 +35,7 @@ services:
 
   # 3. Spring Boot 백엔드 서비스 정의
   backend:
-    build:
-      context: ./backend # 'backend/' 폴더 안에 있는 Dockerfile을 사용하여 이미지 빌드
-      dockerfile: Dockerfile # 사용할 Dockerfile의 이름
-    #ports: # NGINX에의해 외부와 직접 통신하지 않으므로 포트 설정 제거
-    #  - "8083:8080" # 호스트의 8083 포트를 컨테이너의 8080 포트에 연결 (백엔드 앱 포트)
+    image: ghcr.io/jiho-beh/personal_finance_simulation/backend:latest
     container_name: psc_backend
     environment:
       # Spring Boot 애플리케이션이 PostgreSQL에 연결할 때 사용할 정보
@@ -50,28 +46,14 @@ services:
       SPRING_PROFILES_ACTIVE: dev # Spring Boot의 'dev' 프로파일 활성화 (개발용)
     depends_on: # 'db' 서비스가 먼저 시작되어야 'backend'가 시작됩니다.
       - db
-    volumes:
-      - ./backend:/app # 호스트의 'backend/' 폴더 내용을 컨테이너의 '/app'에 연결 (코드 변경 시 즉시 반영)
-      - ~/.gradle/caches:/root/.gradle/caches # Gradle 캐시 공유로 빌드 속도 향상
     networks:
       - app-network
     restart: on-failure # 컨테이너 실패 시 자동으로 다시 시작
 
   # 4. Vue.js 프론트엔드 서비스 정의 (개발 모드용)
   frontend:
-    build:
-      context: ./frontend # 'frontend/' 폴더 안에 있는 Dockerfile을 사용하여 이미지 빌드
-      dockerfile: Dockerfile # 사용할 Dockerfile의 이름
-    #ports: # NGINX에의해 외부와 직접 통신하지 않으므로 포트 설정 제거
-    #  - "8082:3000" # 호스트의 8082 포트를 컨테이너의 3000 포트에 연결 (프론트엔드 앱 포트)
+    image: ghcr.io/jiho-beh/personal_finance_simulation/frontend:latest
     container_name: psc_frontend
-    volumes:
-      - ./frontend:/app # 호스트의 'frontend/' 폴더 내용을 컨테이너의 '/app'에 연결
-      - /app/node_modules # (중요) node_modules는 컨테이너 내부에 유지 (호스트와 독립적으로)
-    # environment: # NGINX에의해 설정 제거
-      # Vue 애플리케이션에서 백엔드 API를 호출할 때 사용할 기본 URL
-      # 'backend'는 docker-compose.yml에 정의된 백엔드 서비스의 이름입니다.
-      # VUE_APP_API_BASE_URL: http://backend:8080 # NGINX에의해 설정 제거
     depends_on: # 'backend' 서비스가 먼저 시작되어야 'frontend'가 시작됩니다.
       - backend
     networks:

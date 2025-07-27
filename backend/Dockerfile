@@ -1,12 +1,14 @@
-# 1. Java 17 버전을 실행할 수 있는 환경을 준비합니다.
+# --- 1단계: 소스 코드를 빌드하여 JAR 파일을 생성 ---
+FROM gradle:8.8-jdk17-alpine AS build
+WORKDIR /home/gradle/src
+COPY --chown=gradle:gradle . .
+# 이 Dockerfile 안에서 직접 gradlew build를 실행합니다.
+RUN gradle build --no-daemon
+
+# --- 2단계: 완성된 JAR 파일만 넣어 실행 ---
 FROM openjdk:17-slim
+# 위 1 단계에서 생성된 JAR 파일을 복사해옵니다.
+COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
-# 2. 나중에 빌드될 JAR 파일의 경로를 변수로 만듭니다.
-ARG JAR_FILE=build/libs/*.jar
-
-# 3. 위 경로의 JAR 파일을 컨테이너 안으로 복사하고, 이름을 app.jar로 바꿉니다.
-COPY ${JAR_FILE} app.jar
-
-# 4. 이 컨테이너가 시작될 때 "java -jar /app.jar" 명령어를 실행하라고 지시합니다.
-# -Dspring.profiles.active=docker 옵션 추가
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=docker", "/app.jar"]
+# Docker Compose 파일에서 환경변수를 통해 프로필을 주입할 것이므로, 여기서는 기본 실행 명령어만 둡니다.
+ENTRYPOINT ["java", "-jar", "/app.jar"]

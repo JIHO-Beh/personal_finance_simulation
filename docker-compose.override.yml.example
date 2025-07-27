@@ -1,0 +1,26 @@
+version: '3.8' # Docker Compose 파일 형식 버전
+
+services:
+  # DB 컨테이너 이름 변경 (개발용)
+  db:
+    container_name: psc_db_dev
+  
+  # NGINX 컨테이너 이름 변경 (개발용)
+  nginx:
+    container_name: psc_nginx_dev
+  
+  # 백엔드 서비스 설정 덮어쓰기
+  backend:
+    build: ./backend # image 대신 build를 사용
+    container_name: psc_backend_dev # 이름 변경
+    volumes:
+      - ./backend:/app # 소스 코드 연결 (핫 리로딩)
+      - ~/.gradle/caches:/root/.gradle/caches
+
+  # 4. Vue.js 프론트엔드 서비스 정의 (개발 모드용)
+  frontend:
+    build: ./frontend # image 대신 build를 사용
+    container_name: psc_frontend_dev # 이름 변경
+    volumes:
+      - ./frontend:/app # 소스 코드 연결 (핫 리로딩)
+      - /app/node_modules
