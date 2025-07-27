@@ -78,11 +78,11 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
           <v-select
             v-model="countryCodeValue"
             :items="props.supportedCountries"
-            :return-object="true"  
             label="国選択"
             item-title="countryName"
             :error-messages="countryCodeError"
             @update:modelValue="handleSelectionChange"
+            return-object
           ></v-select>
         </v-col>
       </v-row>
