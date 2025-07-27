@@ -1,4 +1,4 @@
-version: '3.8' # Docker Compose 파일 형식 버전
+version: '3.8'
 
 services:
   # 1. NGINX 리버스 프록시 서비스
@@ -6,9 +6,9 @@ services:
     image: nginx:alpine
     container_name: psc_nginx
     ports:
-      - "8082:80" # 내 PC의 8082 포트를 NGINX의 80 포트로 연결
+      - "8082:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro # NGINX 설정 파일 마운트 (ro: 읽기 전용)
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - backend
       - frontend
@@ -16,55 +16,51 @@ services:
       - app-network
     restart: always
 
-  # 2. PostgreSQL 데이터베이스 서비스 정의
+  # 2. PostgreSQL 데이터베이스 서비스
   db:
-    image: postgres:17-alpine # PostgreSQL 17.5 버전의 경량 이미지 사용
+    image: postgres:17-alpine
     container_name: psc_db
     environment:
-      POSTGRES_DB: salarydb # 데이터베이스 이름 (필요시 변경)
-      POSTGRES_USER: salary_user   # 데이터베이스 사용자 이름 (필요시 변경)
+      POSTGRES_DB: salarydb
+      POSTGRES_USER: salary_user
       POSTGRES_PASSWORD: P@ssWord!123
     ports:
-      - "5432:5432" # 호스트(내 컴퓨터)의 5432 포트를 컨테이너의 5432 포트에 연결
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data # 데이터 영속성을 위한 볼륨 마운트
+      - db_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - app-network # 모든 서비스가 통신할 수 있는 가상 네트워크
-    restart: always # 컨테이너가 종료되면 항상 자동으로 다시 시작
+      - app-network
+    restart: always
 
-  # 3. Spring Boot 백엔드 서비스 정의
+  # 3. Spring Boot 백엔드 서비스
   backend:
     image: ghcr.io/jiho-beh/personal_finance_simulation/backend:latest
     container_name: psc_backend
     environment:
-      # Spring Boot 애플리케이션이 PostgreSQL에 연결할 때 사용할 정보
-      # 'db'는 docker-compose.yml에 정의된 데이터베이스 서비스의 이름입니다.
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/salarydb # 위 POSTGRES_DB와 동일하게 변경
-      SPRING_DATASOURCE_USERNAME: salary_user # 위 POSTGRES_USER와 동일하게 변경
-      SPRING_DATASOURCE_PASSWORD: P@ssWord!123 # TODO: 위 POSTGRES_PASSWORD와 동일하게 변경
-      SPRING_PROFILES_ACTIVE: dev # Spring Boot의 'dev' 프로파일 활성화 (개발용)
-    depends_on: # 'db' 서비스가 먼저 시작되어야 'backend'가 시작됩니다.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/salarydb
+      SPRING_DATASOURCE_USERNAME: salary_user
+      SPRING_DATASOURCE_PASSWORD: P@ssWord!123
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
       - db
     networks:
       - app-network
-    restart: on-failure # 컨테이너 실패 시 자동으로 다시 시작
+    restart: on-failure
 
-  # 4. Vue.js 프론트엔드 서비스 정의 (개발 모드용)
+  # 4. Vue.js 프론트엔드 서비스 (volumes 설정 제거)
   frontend:
     image: ghcr.io/jiho-beh/personal_finance_simulation/frontend:latest
     container_name: psc_frontend
-    depends_on: # 'backend' 서비스가 먼저 시작되어야 'frontend'가 시작됩니다.
+    depends_on:
       - backend
     networks:
       - app-network
-    restart: on-failure # 컨테이너 실패 시 자동으로 다시 시작
+    restart: on-failure
 
-# 모든 서비스가 통신할 수 있도록 사용자 정의 가상 네트워크를 정의합니다.
 networks:
   app-network:
-    driver: bridge # 기본 브릿지 네트워크 (가장 흔하게 사용)
+    driver: bridge
 
-# 데이터베이스가 사용하는 영속적인 저장 공간(볼륨)을 정의합니다.
 volumes:
-  db_data: {} # 'db' 서비스에서 사용할 볼륨 정의
+  db_data: {}
