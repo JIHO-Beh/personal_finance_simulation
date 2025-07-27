@@ -85,4 +85,4 @@ jobs:
         # gradlew build 단계를 제거하고, pull과 up만 실행
         run: |
           docker-compose pull
-          docker-compose up -d
+          docker-compose up -d --force-recreate
