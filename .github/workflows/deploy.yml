@@ -1,5 +1,7 @@
+# 워크플로우의 이름
 name: CI/CD to On-premise Server
 
+# main 브랜치에 push 할 때 실행
 on:
   push:
     branches: [ main ]
@@ -8,9 +10,34 @@ jobs:
   # 1. 테스트(CI) 작업
   test:
     runs-on: ubuntu-latest
-    # ... (이하 test 작업 내용은 현재와 동일)
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: salarydb_test
+          POSTGRES_USER: salary_user
+          POSTGRES_PASSWORD: P@ssWord!123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Grant execute permission for gradlew
+        run: chmod +x backend/gradlew
+      - name: Run Backend Tests with Gradle
+        run: cd backend && ./gradlew test
 
-  # 2. 이미지 빌드 및 푸시(CI) 작업
+  # 2. 이미지 빌드 및 푸시(CI) 작업 (새로 추가/수정)
   build_and_push:
     needs: test
     runs-on: ubuntu-latest
