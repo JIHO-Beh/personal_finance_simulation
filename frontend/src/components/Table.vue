@@ -54,7 +54,7 @@ watch(props.simulationResults, () => {
         })?.countryName }}</td>
           <td 
             v-for="(item, index) in headers"
-            :key="index">
+            :key="item">
             {{ 
               simulationResult.monthsToGoal !== -1 ?
               (simulationResult.netMonthlySaving * (index + 1)).toFixed(2) :

@@ -86,6 +86,7 @@ const values = ref({
 });
 
 const onSubmit = handleSubmit(async values => {
+  console.log(values)
   simulationResults.value = []
   const postData = {
     goalAmount: goalAmount.value,
