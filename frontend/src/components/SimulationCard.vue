@@ -46,9 +46,11 @@ const updatePayment = () => {
   console.log(cardInformation.value)
   emit('update:cardInformation', cardInformation.value);
 };
-const handleSelectionChange = (newValue: SupportedCountries) => {
-  currency.value = newValue.currency
-  props.cardInformation.countryCode = newValue.countryCode
+const handleSelectionChange = (newValue: string) => {
+  const selectedCountryObject = props.supportedCountries.find(c => c.countryCode === newValue);
+  if (selectedCountryObject) {
+    currency.value = selectedCountryObject.currency;
+  }
 };
 // 各入力フィールドのエラーメッセージを取得するヘルパー関数
 const getFieldError = (fieldName: string, index?: number): string | undefined => {
@@ -80,9 +82,9 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
             :items="props.supportedCountries"
             label="国選択"
             item-title="countryName"
+            item-value="countryCode"
             :error-messages="countryCodeError"
             @update:modelValue="handleSelectionChange"
-            return-object
           ></v-select>
         </v-col>
       </v-row>
