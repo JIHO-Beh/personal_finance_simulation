@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-layout class="d-flex">
-      <v-app-bar color="primary" title="HEADER"></v-app-bar>
+      <v-app-bar color="primary" title="個人資産管理"/>
 
       <v-navigation-drawer color="secondary">
         <v-list>

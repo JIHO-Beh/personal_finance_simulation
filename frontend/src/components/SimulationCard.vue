@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref , defineProps, defineEmits, type PropType } from 'vue';
-import type { CardFormat, SupportedCountries } from "../pages/FinancialSimulation.vue";
+import type { CardFormat, SupportedCountries, MonthlyFixedPayment } from "../pages/FinancialSimulation.vue";
 import TooltipPlusIcon from './TooltipPlusIcon.vue';
 
 const props = defineProps({
@@ -12,18 +12,22 @@ const props = defineProps({
     type: Array as PropType<SupportedCountries[]>,
     required: true,
     default: () => []
+  },
+  formErrors: {
+    type: Object as PropType<Record<string, string | undefined>>,
+    required: true,
+    default: () => ({})
+  },
+  cardIndex: {
+    type: Number,
+    required: true,
   }
 });
-const selectedCountry = ref<SupportedCountries>();
 const currency = ref<string>()
-
 const cardInformation = ref<CardFormat>(
-  props.cardInformation, 
+  props.cardInformation,
 );
-const supportedCountries = ref<SupportedCountries[]>([
-  ...props.supportedCountries, 
-]);
-console.log(supportedCountries)
+
 const emit = defineEmits(['update:cardInformation']);
 
 const addMonthlyFixedPayment = () => {
@@ -37,13 +41,23 @@ const addMonthlyFixedPayment = () => {
 
 // 각 입력 필드에서 값이 변경될 때 호출될 함수 (선택 사항: emit을 통해 부모에게 알림)
 const updatePayment = () => {
+  console.log(cardInformation.value)
   emit('update:cardInformation', cardInformation.value);
 };
 const handleSelectionChange = (newValue: SupportedCountries) => {
   currency.value = newValue.currency
   props.cardInformation.countryCode = newValue.countryCode
 };
-
+// 各入力フィールドのエラーメッセージを取得するヘルパー関数
+const getFieldError = (fieldName: string, index?: number): string | undefined => {
+  let errorKey: string;
+  if (index !== undefined) {
+    errorKey = `cardValues[${props.cardIndex}].${fieldName}[${index}]`;
+  } else {
+    errorKey = `cardValues[${props.cardIndex}].${fieldName}`;
+  }
+  return props.formErrors[errorKey];
+};
 </script>
 
 <template>
@@ -60,18 +74,32 @@ const handleSelectionChange = (newValue: SupportedCountries) => {
       <v-row class="ma-1">
         <v-col>
           <v-select
-            v-model="selectedCountry"
-            label="国選択"
-            :items="supportedCountries"
-            item-title="countryName"
+            v-model="props.cardInformation.countryCode"
+            :items="props.supportedCountries"
             :return-object="true"  
+            label="国選択"
+            item-title="countryName"
+            :error-messages="getFieldError('countryCode')"
             @update:modelValue="handleSelectionChange"
           ></v-select>
         </v-col>
       </v-row>
+      
+      <div v-if="cardInformation.afterTaxSalary">
+        <v-row>
+          <v-col class="mx-7 my-0 pa-0">
+            <v-divider class="border-opacity-100 my-5" color="indigo"></v-divider>
+          </v-col>
+        </v-row>
+        <v-row class="ma-1">
+          <v-col align="end">
+            <h4>税込給料({{(currency ? currency : '')}}) : {{cardInformation.afterTaxSalary}}</h4>
+          </v-col>
+        </v-row>
+      </div>
       <v-row class="ma-1">
         <v-col>
-          月固定費設定
+          <h4>月固定費設定</h4>
         </v-col>
       </v-row>
       <v-row
@@ -84,6 +112,7 @@ const handleSelectionChange = (newValue: SupportedCountries) => {
             hide-details="auto"
             label="項目名"
             v-model="payment.monthlyFixedPaymentName"
+            :error-messages="getFieldError('monthlyFixedPaymentName', index)"
             @update:modelValue="updatePayment"
           ></v-text-field>
         </v-col>
@@ -91,8 +120,9 @@ const handleSelectionChange = (newValue: SupportedCountries) => {
           <v-text-field
             type="number"
             hide-details="auto"
-            :label="`金額${currency ? currency : ''}`"
+            :label="`金額(${currency ? currency : ''})`"
             v-model.number="payment.monthlyFixedPaymentAmount" 
+            :error-messages="getFieldError('monthlyFixedPaymentAmount', index)"
             @update:modelValue="updatePayment"
           ></v-text-field>
         </v-col>
@@ -105,6 +135,23 @@ const handleSelectionChange = (newValue: SupportedCountries) => {
           />
         </v-col>
       </v-row>
+      <v-row class="ma-1">
+        <v-col align="end">
+          <h4>固定費合計({{(currency ? currency : '')}})：{{ cardInformation.monthlyFixedPayment.reduce((sum: number, item: MonthlyFixedPayment) => sum + item.monthlyFixedPaymentAmount, 0) }}</h4>
+        </v-col>
+      </v-row>
+      <div v-if="cardInformation.afterTaxSalary">
+        <v-row>
+          <v-col class="mx-7 my-0 pa-0">
+            <v-divider class="border-opacity-100 my-5" color="indigo"></v-divider>
+          </v-col>
+        </v-row>
+        <v-row class="ma-1">
+          <v-col align="end">
+            <h4>積み立て金額({{(currency ? currency : '')}}) : {{cardInformation.netMonthlySaving}}</h4>
+          </v-col>
+        </v-row>
+      </div>
     </v-card>
   </v-col>
 </template>

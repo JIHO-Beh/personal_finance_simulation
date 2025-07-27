@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import PrimaryBtn from '../components/PrimaryBtn.vue';
 import SimulationCard from '../components/SimulationCard.vue';
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import axios from 'axios'
 import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
+import Table from '../components/Table.vue';
+import { useField, useForm } from 'vee-validate';
+import * as yup from 'yup';
 
 const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
 const FINANCIAL_SIMULATION = "/api/v1/financial-simulation"
 
+export interface SimulationResult {
+  countryCode: string;
+  monthsToGoal: number;
+  netMonthlySaving: number
+}
 export interface MonthlyFixedPayment {
   monthlyFixedPaymentName: string;
   monthlyFixedPaymentAmount: number;
@@ -20,30 +28,65 @@ export interface SupportedCountries {
 export interface CardFormat {
   countryCode: string;
   monthlyFixedPayment: MonthlyFixedPayment[]
+  afterTaxSalary?: number
+  netMonthlySaving?: number
 }
-const supportedCountries = ref()
-const goalAmount = ref<number>()
-const salary = ref<number>()
-const init = async () => {
-  supportedCountries.value = await axios.get(SUPPORTED_COUNTRIES).then(data => {
-    return data.data
-  })
-}
-init()
-const cardValues = ref<CardFormat[]>([])
 
-
-const addMonthlyFixedPayment = () => {
-  cardValues.value.push({
-    countryCode: '',
-    monthlyFixedPayment: []
+// goalAmount: goalAmount.value,
+//     salary: salary.value,
+//     scenarios: cardValues.value.map((item: CardFormat) => {
+//       return {
+//         countryCode: item.countryCode,
+//         fixedExpense: item.monthlyFixedPayment.map((monthlyFixedPayment: MonthlyFixedPayment) => {
+//           return monthlyFixedPayment.monthlyFixedPaymentAmount
+//         })
+//       }
+//     })
+const monthlyFixedPaymentSchema = yup.object({
+  monthlyFixedPaymentName: yup.string(), // 名前が必須
+  monthlyFixedPaymentAmount: yup
+    .number()
+    .min(0, '固定費の金額は0以上である必要があります') // 金額は0以上
+    .required('固定費の金額は必須です') // 金額が必須
+    .typeError('固定費の金額は数値である必要があります'), // 型エラーメッセージ
+});
+const cardFormatSchema = yup.object({
+  countryCode: yup.string().required('国コードは必須です'), // 国コードが必須
+  monthlyFixedPayment: yup
+    .array(monthlyFixedPaymentSchema),
+  afterTaxSalary: yup.number().optional().nullable(),
+  netMonthlySaving: yup.number().optional().nullable(),
   });
-  
-}
-const simurationEvent = async () => {
-  // await axios.get(FINANCIAL_SIMULATION).then(data => {
-  //   console.log(data)
-  // })
+
+const validationSchema = yup.object({
+  goalAmount: yup.number().min(0).required(),
+  salary: yup
+    .number()
+    .min(0)
+    .required(),
+  cardValues: yup.array(cardFormatSchema)
+})
+// useFormフックでフォームの値、送信処理、エラーメッセージを管理
+const { handleSubmit, errors } = useForm({
+  validationSchema,
+  initialValues: {
+    goalAmount: 0, // または適切な初期値
+    salary: 0,     // または適切な初期値
+    cardValues: [] // ここが重要！空の配列で初期化します
+  }
+});
+
+const { value: goalAmount } = useField<string>('goalAmount');
+const { value: salary } = useField<string>('salary');
+const { value: cardValues } = useField<CardFormat[]>('cardValues')
+const values = ref({
+  goalAmount,
+  salary,
+  cardValues
+});
+
+const onSubmit = handleSubmit(async values => {
+  simulationResults.value = []
   const postData = {
     goalAmount: goalAmount.value,
     salary: salary.value,
@@ -57,27 +100,36 @@ const simurationEvent = async () => {
     })
   }
   await axios.post(FINANCIAL_SIMULATION, postData).then(response => {
-    // 요청이 성공했을 때 실행될 코드
-    console.log('POST リクエストが成功しました！');
-    console.log('レスポンスデータ:', response.data); // 서버로부터 받은 응답 데이터
-    console.log('ステータスコード:', response.status); // HTTP 상태 코드 (예: 200, 201)
+    response.data.forEach((element: any, index: number) => {
+      if(cardValues.value[index]){
+        cardValues.value[index].afterTaxSalary = element.afterTaxSalary || 0
+        cardValues.value[index].netMonthlySaving = element.netMonthlySaving|| 0
+      }
+      simulationResults.value.push({
+        countryCode: element.countryCode,
+        monthsToGoal: element.monthsToGoal,
+        netMonthlySaving: element.netMonthlySaving
+      })
+    });
   })
-  .catch(error => {
-    // 요청이 실패했을 때 실행될 코드
-    console.error('POST リクエスト中にエラーが発生しました:', error);
-    if (error.response) {
-      // 서버가 응답했지만 상태 코드가 2xx 범위가 아닌 경우
-      console.error('エラーレスポンスデータ:', error.response.data);
-      console.error('エラーレスポンスステータス:', error.response.status);
-      console.error('エラーレスポンスヘッダー:', error.response.headers);
-    } else if (error.request) {
-      // 요청이 전송되었지만 응답을 받지 못한 경우 (네트워크 문제 등)
-      console.error('リクエストが送信されましたが、レスポンスがありませんでした:', error.request);
-    } else {
-      // 요청을 설정하는 중에 오류가 발생한 경우
-      console.error('エラー:', error.message);
-    }
+  console.log(simulationResults.value.length)
+});
+const supportedCountries = ref()
+const init = async () => {
+  supportedCountries.value = await axios.get(SUPPORTED_COUNTRIES).then(data => {
+    return data.data
+  })
+}
+init()
+const simulationResults = ref<SimulationResult[]>([])
+
+
+const addMonthlyFixedPayment = () => {
+  cardValues.value.push({
+    countryCode: '',
+    monthlyFixedPayment: [],
   });
+  
 }
 </script>
 
@@ -86,7 +138,8 @@ const simurationEvent = async () => {
     <v-row>
       <v-col :cols="4">
         <v-text-field
-          v-model="goalAmount"
+          v-model="values.goalAmount"
+          :error-messages="errors.goalAmount"
           hide-details="auto"
           label="目標金額"
           variant="underlined"
@@ -96,15 +149,16 @@ const simurationEvent = async () => {
       </v-col>
       <v-col>
         <PrimaryBtn
-          :btnText="'btnText'" as string
-          @child-event="simurationEvent"
+          :btnText="'計算'" as string
+          @child-event="onSubmit"
         />
       </v-col>
     </v-row>
     <v-row>
       <v-col :cols="4">
         <v-text-field
-          v-model="salary"
+          v-model="values.salary"
+          :error-messages="errors.salary"
           hide-details="auto"
           label="給料"
           variant="underlined"
@@ -119,10 +173,12 @@ const simurationEvent = async () => {
       </v-col>
     </v-row>
     <v-row>
-      <template v-for="(cardData, index) in cardValues" :key="index">
+      <template v-for="(cardData, index) in values.cardValues" :key="cardData">
         <SimulationCard
           :card-information="cardData"
           :supported-countries="supportedCountries"
+          :form-errors="errors"
+          :card-index="index"
           class="mb-4"
         />
       </template>
@@ -133,6 +189,16 @@ const simurationEvent = async () => {
         />
       </v-col>
     </v-row>
+    <v-row>
+      <v-col>
+        <v-divider class="border-opacity-100 my-5" color="indigo"></v-divider>
+      </v-col>
+    </v-row>
+    <Table
+      v-if="simulationResults.length"
+      :simulation-results="simulationResults"
+      :supported-countries="supportedCountries"
+    />
   </v-container>
 </template>
 
