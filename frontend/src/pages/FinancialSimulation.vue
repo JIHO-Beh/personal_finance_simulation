@@ -46,7 +46,7 @@ const monthlyFixedPaymentSchema = yup.object({
   monthlyFixedPaymentName: yup.string(), // 名前が必須
   monthlyFixedPaymentAmount: yup
     .number()
-    .min(0, '固定費の金額は0以上である必要があります') // 金額は0以上
+    .min(1, '固定費の金額は0以上である必要があります') // 金額は0以上
     .required('固定費の金額は必須です') // 金額が必須
     .typeError('固定費の金額は数値である必要があります'), // 型エラーメッセージ
 });
@@ -178,7 +178,6 @@ const addMonthlyFixedPayment = () => {
         <SimulationCard
           :card-information="cardData"
           :supported-countries="supportedCountries"
-          :form-errors="errors"
           :card-index="index"
           class="mb-4"
         />

@@ -14,53 +14,37 @@ const props = defineProps({
     required: true,
     default: () => []
   },
-  formErrors: {
-    type: Object as PropType<Record<string, string | undefined>>,
-    required: true,
-    default: () => ({})
-  },
   cardIndex: {
     type: Number,
     required: true,
   }
 });
 const { value: countryCodeValue, errorMessage: countryCodeError } = useField<string>(`cardValues[${props.cardIndex}].countryCode`);
+const { value: monthlyFixedPaymentValue, errorMessage: monthlyFixedPaymentError } = 
+useField<MonthlyFixedPayment[]>(`cardValues[${props.cardIndex}].monthlyFixedPayment`);
 const currency = ref<string>()
-const cardInformation = ref<CardFormat>(
-  props.cardInformation,
-);
 
 const emit = defineEmits(['update:cardInformation']);
 
 const addMonthlyFixedPayment = () => {
-  cardInformation.value.monthlyFixedPayment.push({
+  props.cardInformation.monthlyFixedPayment.push({
     monthlyFixedPaymentName: '',
     monthlyFixedPaymentAmount: 0,
   });
   // 부모 컴포넌트에 변경된 배열을 emit할 수도 있습니다.
-  emit('update:cardInformation', cardInformation.value);
+  emit('update:cardInformation', props.cardInformation);
 };
 
 // 각 입력 필드에서 값이 변경될 때 호출될 함수 (선택 사항: emit을 통해 부모에게 알림)
 const updatePayment = () => {
-  console.log(cardInformation.value)
-  emit('update:cardInformation', cardInformation.value);
+  console.log(props.cardInformation)
+  emit('update:cardInformation', props.cardInformation);
 };
 const handleSelectionChange = (newValue: string) => {
   const selectedCountryObject = props.supportedCountries.find(c => c.countryCode === newValue);
   if (selectedCountryObject) {
     currency.value = selectedCountryObject.currency;
   }
-};
-// 各入力フィールドのエラーメッセージを取得するヘルパー関数
-const getFieldError = (fieldName: string, index?: number): string | undefined => {
-  let errorKey: string;
-  if (index !== undefined) {
-    errorKey = `cardValues[${props.cardIndex}].${fieldName}[${index}]`;
-  } else {
-    errorKey = `cardValues[${props.cardIndex}].${fieldName}`;
-  }
-  return props.formErrors[errorKey];
 };
 </script>
 
@@ -107,7 +91,7 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
         </v-col>
       </v-row>
       <v-row
-        v-for="(payment, index) in cardInformation.monthlyFixedPayment"
+        v-for="(payment, index) in monthlyFixedPaymentValue"
         :key="index"
         class="ma-1"
       >
@@ -116,7 +100,6 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
             hide-details="auto"
             label="項目名"
             v-model="payment.monthlyFixedPaymentName"
-            :error-messages="getFieldError('monthlyFixedPaymentName', index)"
             @update:modelValue="updatePayment"
           ></v-text-field>
         </v-col>
@@ -126,12 +109,12 @@ const getFieldError = (fieldName: string, index?: number): string | undefined =>
             hide-details="auto"
             :label="`金額(${currency ? currency : ''})`"
             v-model.number="payment.monthlyFixedPaymentAmount" 
-            :error-messages="getFieldError('monthlyFixedPaymentAmount', index)"
+            :error-messages="monthlyFixedPaymentError"
             @update:modelValue="updatePayment"
+            default="0"
           ></v-text-field>
         </v-col>
       </v-row>
-      {{ formErrors }}
       <v-row class="ma-1">
         <v-col align="center">
           <TooltipPlusIcon
