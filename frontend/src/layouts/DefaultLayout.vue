@@ -18,11 +18,14 @@
       <v-main class="d-flex justify-center">
         <RouterView />
       </v-main>
+      <ErrorMessege />
     </v-layout>
+    
   </v-app>
 </template>
 
 <script setup lang="ts">
+import ErrorMessege from "../components/Dialog/ErrorMessege.vue";
 </script>
 
 <style scoped></style>

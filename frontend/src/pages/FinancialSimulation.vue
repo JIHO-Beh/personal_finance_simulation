@@ -7,6 +7,7 @@ import TooltipPlusIcon from '../components/TooltipPlusIcon.vue';
 import Table from '../components/Table.vue';
 import { useField, useForm } from 'vee-validate';
 import yup from '../../yup.locale';
+import {useErrorDialogStore} from '../store/errorDialog';
 
 const SUPPORTED_COUNTRIES = "/api/v1/supported-countries"
 const FINANCIAL_SIMULATION = "/api/v1/financial-simulation"
@@ -59,10 +60,10 @@ const cardFormatSchema = yup.object({
   });
 
 const validationSchema = yup.object({
-  goalAmount: yup.number().min(0).required("目標金額を入力してください"),
+  goalAmount: yup.number().required("目標金額を入力してください"),
   salary: yup
     .number()
-    .min(0)
+    .min(1)
     .required(),
   cardValues: yup.array(cardFormatSchema)
 })
@@ -76,8 +77,8 @@ const { handleSubmit, errors } = useForm({
   }
 });
 
-const { value: goalAmount } = useField<string>('goalAmount');
-const { value: salary } = useField<string>('salary');
+const { value: goalAmount } = useField<number>('goalAmount');
+const { value: salary } = useField<number>('salary');
 const { value: cardValues } = useField<CardFormat[]>('cardValues')
 const values = ref({
   goalAmount,
@@ -86,7 +87,8 @@ const values = ref({
 });
 
 const onSubmit = handleSubmit(async values => {
-  console.log(values)
+  if(!goalAmount.value)
+    goalAmount.value = salary.value * 12
   simulationResults.value = []
   const postData = {
     goalAmount: goalAmount.value,
@@ -112,6 +114,8 @@ const onSubmit = handleSubmit(async values => {
         netMonthlySaving: element.netMonthlySaving
       })
     });
+  }).catch(error => {
+    useErrorDialogStore().openErrorDialog(error.response.data.message)
   })
   console.log(simulationResults.value.length)
 });

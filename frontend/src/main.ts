@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'; // ルーターインスタンスインポート
+import { createPinia } from 'pinia'
 
 // Vuetify
 import { createVuetify } from 'vuetify';
@@ -41,9 +42,13 @@ const vuetify = createVuetify({
   },
 });
 
+// 1. Pinia 인스턴스 생성
+const pinia = createPinia()
+
 const app = createApp(App);
 
 app.use(router); // Vueにプラグインを適用
 app.use(vuetify); // Vuetify プラグイン追加
+app.use(pinia)
 
 app.mount('#app');
